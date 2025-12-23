@@ -1,0 +1,54 @@
+{
+  "name": "broken-link-checker-html",
+  "version": "1.0.0",
+  "description": "Fast broken link detection for HTML content. Detects broken URLs, images, and invalid href values.",
+  "keywords": [
+    "broken-links",
+    "link-checker",
+    "dead-links",
+    "html",
+    "seo",
+    "web",
+    "url-checker",
+    "404",
+    "invalid-href"
+  ],
+  "author": "Hayati Ali Keles <hayatialikeles@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hayatialikeles/broken-link-checker-html.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hayatialikeles/broken-link-checker-html/issues"
+  },
+  "homepage": "https://github.com/hayatialikeles/broken-link-checker-html#readme",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "exports": {
+    ".": {
+      "import": "./src/index.js",
+      "require": "./src/index.js"
+    }
+  },
+  "bin": {
+    "broken-link-checker": "./src/cli.js",
+    "blc": "./src/cli.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "node --test test/index.test.js",
+    "lint": "eslint src/",
+    "prepublishOnly": "npm test"
+  },
+  "devDependencies": {},
+  "dependencies": {}
+}
