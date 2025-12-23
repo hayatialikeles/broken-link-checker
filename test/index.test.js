@@ -6,7 +6,7 @@ import {
   cleanBrokenUrls,
   DEFAULT_SAFE_DOMAINS,
   VALID_PREFIXES,
-} from '../src/index.js';
+} from '../dist/index.js';
 
 describe('extractUrls', () => {
   test('extracts HTTP links', () => {

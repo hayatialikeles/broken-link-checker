@@ -6,11 +6,30 @@
 
 import fs from 'fs';
 import path from 'path';
-import { findBrokenLinks, checkUrl, checkPage, extractUrls } from './index.js';
+import {
+  findBrokenLinks,
+  checkUrl,
+  checkPage,
+  extractUrls,
+} from './index.js';
 
 const VERSION = '1.0.0';
 
-function printHelp() {
+interface CliOptions {
+  url: string | null;
+  page: string | null;
+  file: string | null;
+  timeout: number;
+  concurrency: number;
+  method: 'HEAD' | 'GET' | 'auto';
+  output: string | null;
+  quiet: boolean;
+  json: boolean;
+  checkInvalid: boolean;
+  liveCheck: boolean;
+}
+
+function printHelp(): void {
   console.log(`
 broken-link-checker-html v${VERSION}
 
@@ -42,8 +61,8 @@ Examples:
 `);
 }
 
-function parseArgs(args) {
-  const options = {
+function parseArgs(args: string[]): CliOptions {
+  const options: CliOptions = {
     url: null,
     page: null,
     file: null,
@@ -54,7 +73,7 @@ function parseArgs(args) {
     quiet: false,
     json: false,
     checkInvalid: true,
-    liveCheck: true,  // Canlı URL kontrolü (varsayılan: açık)
+    liveCheck: true,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -79,17 +98,17 @@ function parseArgs(args) {
         break;
       case '-t':
       case '--timeout':
-        options.timeout = parseInt(next);
+        options.timeout = parseInt(next, 10);
         i++;
         break;
       case '-c':
       case '--concurrency':
-        options.concurrency = parseInt(next);
+        options.concurrency = parseInt(next, 10);
         i++;
         break;
       case '-m':
       case '--method':
-        options.method = next.toUpperCase();
+        options.method = next.toUpperCase() as 'HEAD' | 'GET' | 'auto';
         i++;
         break;
       case '-o':
@@ -115,10 +134,12 @@ function parseArgs(args) {
       case '--help':
         printHelp();
         process.exit(0);
+        break;
       case '-v':
       case '--version':
         console.log(VERSION);
         process.exit(0);
+        break;
       default:
         // Positional argument - could be URL or file
         if (!arg.startsWith('-')) {
@@ -134,7 +155,7 @@ function parseArgs(args) {
   return options;
 }
 
-async function checkSingleUrl(url, options) {
+async function checkSingleUrl(url: string, options: CliOptions): Promise<void> {
   const { quiet, json, timeout, method } = options;
 
   if (!quiet) console.log(`Checking: ${url} (method: ${method})`);
@@ -154,7 +175,7 @@ async function checkSingleUrl(url, options) {
   }
 }
 
-async function checkLivePage(pageUrl, options) {
+async function checkLivePage(pageUrl: string, options: CliOptions): Promise<void> {
   const { quiet, json, output, timeout, concurrency, checkInvalid } = options;
 
   if (!quiet) {
@@ -226,7 +247,7 @@ async function checkLivePage(pageUrl, options) {
   process.exit(totalBroken > 0 ? 1 : 0);
 }
 
-async function checkHtmlFile(filePath, options) {
+async function checkHtmlFile(filePath: string, options: CliOptions): Promise<void> {
   const { quiet, json, output, timeout, concurrency, checkInvalid, liveCheck } = options;
 
   const absolutePath = path.resolve(filePath);
@@ -244,20 +265,26 @@ async function checkHtmlFile(filePath, options) {
     console.log('');
   }
 
-  let brokenLinks = [];
-  let brokenImages = [];
-  let invalidLinks = [];
-  let stats = {};
+  let brokenLinks: Array<{ url: string }> = [];
+  let brokenImages: Array<{ url: string }> = [];
+  let invalidLinks: Array<{ url: string }> = [];
+  let stats: {
+    totalLinks: number;
+    totalImages: number;
+    totalInvalidLinks: number;
+    brokenLinksCount: number;
+    brokenImagesCount: number;
+  };
 
   if (liveCheck) {
-    // Canlı kontrol: URL'leri çıkar ve HTTP ile kontrol et
+    // Live check: extract URLs and check via HTTP
     const result = await findBrokenLinks(html, { timeout, concurrency });
     brokenLinks = result.brokenLinks;
     brokenImages = result.brokenImages;
     invalidLinks = result.invalidLinks;
     stats = result.stats;
   } else {
-    // Sadece çıkar: HTTP kontrolü yapma
+    // Extract only: no HTTP checking
     const extracted = extractUrls(html);
     invalidLinks = extracted.invalidLinks;
     stats = {
@@ -267,7 +294,7 @@ async function checkHtmlFile(filePath, options) {
       brokenLinksCount: 0,
       brokenImagesCount: 0,
     };
-    // Extract only modunda tüm linkleri göster
+    // In extract mode, show all links
     brokenLinks = extracted.links;
     brokenImages = extracted.images;
   }
@@ -360,7 +387,7 @@ async function checkHtmlFile(filePath, options) {
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
@@ -383,6 +410,6 @@ async function main() {
 }
 
 main().catch(err => {
-  console.error('Error:', err.message);
+  console.error('Error:', (err as Error).message);
   process.exit(1);
 });

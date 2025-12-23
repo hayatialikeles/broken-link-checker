@@ -11,7 +11,8 @@
     "web",
     "url-checker",
     "404",
-    "invalid-href"
+    "invalid-href",
+    "typescript"
   ],
   "author": "Hayati Ali Keles <hayatialikeles@gmail.com>",
   "license": "MIT",
@@ -24,20 +25,23 @@
   },
   "homepage": "https://github.com/hayatialikeles/broken-link-checker-html#readme",
   "type": "module",
-  "main": "./src/index.js",
-  "module": "./src/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./src/index.js",
-      "require": "./src/index.js"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
     }
   },
   "bin": {
-    "broken-link-checker": "./src/cli.js",
-    "blc": "./src/cli.js"
+    "broken-link-checker": "./dist/cli.js",
+    "blc": "./dist/cli.js"
   },
   "files": [
-    "src",
+    "dist",
     "README.md",
     "LICENSE"
   ],
@@ -45,10 +49,16 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "test": "node --test test/index.test.js",
-    "lint": "eslint src/",
-    "prepublishOnly": "npm test"
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "npm run build && node --test test/index.test.js",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.0"
+  },
   "dependencies": {}
 }
